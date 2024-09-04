@@ -1,6 +1,6 @@
 // db.js
-require("dotenv").config();
-const MongoClient = require("mongodb").MongoClient;
+require("dotenv").config({ path: "./.env.local" });
+const { MongoClient } = require("mongodb");
 
 // MongoDB connection URL with authentication options
 let url = `${process.env.MONGO_URL}`;
