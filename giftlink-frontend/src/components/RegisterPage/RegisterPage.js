@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import { urlConfig } from "../../config";
+import { useAppContext } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 import "./RegisterPage.css";
 
 const RegisterPage = () => {
@@ -8,9 +11,47 @@ const RegisterPage = () => {
     email: "",
     password: "",
   });
+  const [showerr, setShowerr] = useState("");
+  const navigate = useNavigate();
+  const { setIsLoggedIn } = useAppContext();
 
-  const handleRegister = () => {
-    console.log(data);
+  const handleRegister = async () => {
+    try {
+      if (!data.firstName || !data.lastName || !data.email || !data.password) {
+        setShowerr("All fields are required.");
+        return;
+      }
+      const response = await fetch(
+        `${urlConfig.backendUrl}/api/auth/register`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email,
+            password: data.password,
+          }),
+        }
+      );
+      const json = await response.json();
+      if (json.authtoken) {
+        sessionStorage.setItem("auth-token", json.authtoken);
+        sessionStorage.setItem("name", data.firstName);
+        sessionStorage.setItem("email", json.email);
+        //insert code for setting logged in state
+        setIsLoggedIn(true);
+        //insert code for navigating to MainPAge
+        navigate("/app");
+      }
+      if (json.error) {
+        setShowerr(json.error);
+      }
+    } catch (e) {
+      console.log("Error fetching details: " + e.message);
+    }
   };
 
   const handleFirstNameInputChange = (e) => {
@@ -97,6 +138,7 @@ const RegisterPage = () => {
                 value={data.email}
                 onChange={handleEmailInputChange}
               />
+              {showerr && <div className="text-danger">{showerr}</div>}
             </div>
             <div className="mb-4">
               <label htmlFor="password" className="form label">
